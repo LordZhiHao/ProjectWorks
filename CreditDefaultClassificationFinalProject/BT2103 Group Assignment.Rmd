@@ -1,0 +1,85 @@
+---
+title: "BT2103 Group Assignment"
+author: "Lo Zhi Hao"
+date: "2022-11-11"
+output: html_document
+---
+```{r intro}
+## Loading required packages 
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+
+## Reading the dataset
+data <- read.csv("card.csv")
+head(data)
+str(data)
+
+## data preprocessing 
+data_processed <- data[-1, ]
+head(data_processed)
+str(data_processed)
+```
+asd
+
+```{r setup}
+## processing on data
+card <- data_processed %>% mutate(X1 = as.numeric(as.character(X1))) %>%
+ mutate(X5 = as.numeric(as.character(X5))) %>%
+ mutate(X6 = as.numeric(as.character(X6))) %>%
+ mutate(X7 = as.numeric(as.character(X7))) %>%
+ mutate(X8 = as.numeric(as.character(X8))) %>%
+ mutate(X9 = as.numeric(as.character(X9))) %>%
+ mutate(X10 = as.numeric(as.character(X10))) %>%
+ mutate(X11 = as.numeric(as.character(X11))) %>%
+ mutate(X12 = as.numeric(as.character(X12))) %>%
+ mutate(X13 = as.numeric(as.character(X13))) %>%
+ mutate(X14 = as.numeric(as.character(X14))) %>%
+ mutate(X15 = as.numeric(as.character(X15))) %>%
+ mutate(X16 = as.numeric(as.character(X16))) %>%
+ mutate(X17 = as.numeric(as.character(X17))) %>%
+ mutate(X18 = as.numeric(as.character(X18))) %>%
+ mutate(X19 = as.numeric(as.character(X19))) %>%
+ mutate(X20 = as.numeric(as.character(X20))) %>%
+ mutate(X21 = as.numeric(as.character(X21))) %>%
+ mutate(X22 = as.numeric(as.character(X22))) %>%
+ mutate(X23 = as.numeric(as.character(X23)))
+
+
+## dropping factor levels that are unused
+card <- card %>% mutate(X2 = droplevels(as.factor(X2))) 
+card <- card %>% mutate(X3 = droplevels(as.factor(X3))) 
+card <- card %>% mutate(X4 = droplevels(as.factor(X4)))
+card <- card %>% mutate(Y = droplevels(as.factor(Y)))
+card <- card %>% mutate(X6 = droplevels(as.factor(X6)))
+card <- card %>% mutate(X7 = droplevels(as.factor(X7)))
+card <- card %>% mutate(X8 = droplevels(as.factor(X8)))
+
+## tests to make sure the values are changed accordingly
+str(card)
+class(card$X1)
+```
+
+asa
+
+```{r visualisation}
+## Doing data exploration and visualisation variable by variable
+
+## X1 -> Amount of given credit
+hist(card$X1, main = "Distribution of Amount of Given Credit", xlim = c(0, 1000000), ylim = c(0, 5000), breaks = 50, col = "green", xlab = "Amount of Given Credit", ylab = "Frequency")
+
+```
+
+```{r}
+## X2 -> gender
+table(card$X2)
+barplot(table(card$X2))
+# 11888 records are males, while 18112 are females
+```
+
+```{r}
+## X3 -> Education
+table(card$X3)
+barplot(table(card$X3), ylim = c(0, 15000), main = "Distribution of Education Level", ylab = "Frequency", xlab = "Education Level")
+```
