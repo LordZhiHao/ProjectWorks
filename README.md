@@ -19,3 +19,7 @@ This is a project of visualising the trends of Covid-19 spread and infection in 
 4. TitanicMachineLearningCompetitionKaggle
 
 This is an online platform (Kaggle) machine learning competition that I currently enrolled in. Currently, I have not uploaded any documents related to it but I will be doing t soon after I come up with my best performing model. 
+
+5. BusinessAndTechnicalCommunication
+
+Although this is not a technical project, this is a project that is from a previous module of mine. It had provided me in depth understanding on how communications and especially thinking from a business owner's perspective, which I believe will be useful for future work and communications. 
