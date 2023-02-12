@@ -23,3 +23,7 @@ This is an online platform (Kaggle) machine learning competition that I currentl
 5. BusinessAndTechnicalCommunication
 
 Although this is not a technical project, this is a project that is from a previous module of mine. It had provided me in depth understanding on how communications and especially thinking from a business owner's perspective, which I believe will be useful for future work and communications. 
+
+6. ETFSelection 
+
+A final group project for one of my previous module, we in a team of 4 selected a portfolio of ETFs that can maximise our returns while keeping risks as low as possible. We implemented relevant financial knowledge and ratios such as Sharpe Ratio, Mean Annual Returns and CAPM regression to generate our portfolio. The main scripting language is in R Language. 
