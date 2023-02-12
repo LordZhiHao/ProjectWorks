@@ -1,0 +1,425 @@
+---
+title: '**Finance Project - G38**'
+author:
+- Chan Chen Yang - A0233968N
+- Lim Yi Han - A0239065B
+- Lim Zhen Yong - A0236495U
+- Lo Zhi Hao - A0236437B
+date: 'Last updated: 15 April 2022'
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+always_allow_html: yes
+---
+
+```{r preparation, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(root.dir = "/Users/yihan/Downloads", echo = TRUE)
+
+### Install libraries
+#install.packages("plotly")
+#install.packages("tidyquant")
+#install.packages("fs")
+#install.packages("lubridate")
+#install.packages("zoo")
+#install.packages("scales")
+#install.packages("PerformanceAnalytics")
+#install.packages("tictoc")
+#install.packages("timetk")
+#install.packages("dygraphs)
+
+### Load libraries 
+library(plotly) #To create interactive charts
+library(tidyquant) #To download the data
+library(tidyverse)
+library(fs)
+library(lubridate)
+library(dplyr)
+library(zoo)
+library(tidyr)
+library(scales)
+library(PerformanceAnalytics)
+library(tictoc)
+library(timetk) #To manipulate the data series
+library(readxl)
+library(dygraphs)
+library(xts)
+library(kableExtra)
+
+```
+
+# Portfolio Optimization
+
+**Modern portfolio theory (MPT)** tells us that investors are risk averse and given a level of risk, they will choose the portfolios that offer the most return. This is where portfolio optimization comes into play.
+
+To perform the optimization we will need
+
+-- To read asset price data\
+-- Calculate the mean returns for the time period (10/2001-present)\
+-- Assign random weights to the assets and then use those to build an efficient frontier through rounds of trialing\
+
+_Disclaimer: For following data, expense ratio defined "per annum", tracking difference defined "over 1 year"_
+
+In order to construct an even more comprehensive and diversified portfolio, we suggest including 2 additional ETFs, alongside the 16 ETFs provided to us. 
+
+**Initial set of 16 suggested ETFs:**\
+AGG: iShares Core U.S Aggregate Bond ETF\
+SCHP: Schwab U.S. TIPS ETF\
+VCSH: Vanguard Short-Term Corporate Bond ETF\
+BNDX: Vanguard Total International Bond ETF\
+EMB: iShares J.P. Morgan USD Emerging Markets Bond ETF\
+
+1306: Nomura TOPIX Exchange Traded Fund ETF\
+VOO: Vanguard S&P 500 ETF\
+VO: Vanguard Mid-Cap ETF\
+VSS: Vanguard FTSE All-World ex-US Small-Cap ETF\
+VGK: Vanguard FTSE Europe ETF\
+VWO: Vanguard FTSE Emerging Markets ETF\
+
+1343: Nomura NEXT FUNDS Tokyo Stock Exchange REIT Index ETF\
+VNQ: Vanguard Real Estate ETF\
+VNQI: Vanguard Global ex-U.S. Real Estate ETF\
+
+IAU: iShares Gold Trust ETF\
+BCI: ETFS Bloomberg All Commodity Strategy K-1 Free ETF\
+
+\
+**Our suggested ETFs:**\
+
+2561: iShares Core Japan Government Bond ETF\
+https://www.blackrock.com/jp/individual-en/en/products/313081/ishares-core-japan-government-bond-etf
+
+Expense Ratio: 0.07% (low)\
+Tracking difference: -0.26%\
+Benchmark: FTSE Japanese Government Bond Index - JPY\
+
+The 16 ETFs listed above, although well-diversified across asset classes and region, does not include JPY Fixed-Income, hence we believe including the 2561 ETF will provide exposure to a broad range of fixed-rate, local-currency Japanese government bonds. Also, it is a cost effective way to diversify our portfolio using fixed income.
+
+SCHA: Schwab U.S. Small-Cap ETF
+https://www.schwabassetmanagement.com/resource/scha-fact-sheet
+
+Expense Ratio: 0.04% (low)\
+Tracking difference: 0.02%\
+Benchmark: Dow Jones U.S Small-Cap Total Stock Market Total Return Index - USD\
+
+Although the 16 ETF listed above comprised of a few ETF that covers the emerging market, it is more proportionately offerings from China, Taiwan, India, Canada and Japan. It would be beneficial to further diversify into the US emerging market consisting of small-cap stocks, in which companies have much resources to innovate. Small-cap stocks tend to have more room to move than large-caps, so they exhibit greater volatility. More importantly, small-caps are more risky than more stable, large-cap stocks. As an added bonus, small caps aren’t perfectly correlated with large caps, offering a diversification benefit.
+
+
+```{r data-read-in, echo=FALSE, eval=TRUE, warning = FALSE}
+
+tickers <- c("AGG", "SCHP", "VCSH", "BNDX", "VWOB", "1306", "VOO", "VO", "VSS", "VGK", "VWO", "1343", "VNQ", "VNQI", "IAU", "BCI")
+
+# ETF Daily Returns 
+ETFfxReturns <- read_excel("/Users/yihan/Downloads/BT2201Finance/ETFfxReturns.xlsx")
+ETFfxReturnsxts <- xts(ETFfxReturns[,-1], order.by = ETFfxReturns$x)
+
+# Peek data
+# head(ETFfxReturns)
+
+# Filter only numeric columns
+find.numeric <- sapply(ETFfxReturns, is.numeric)
+numeric_returns <- ETFfxReturns[, find.numeric]
+ETFreturns <- dplyr::select(numeric_returns, -c(1,2))
+colnames(ETFreturns) <- tickers
+
+# Create xts object for backtesting 
+portfolioreturns <- dplyr::select(ETFfxReturns, -c(2,3))
+portfolioreturnsxts <- xts(portfolioreturns[,-1], order.by = portfolioreturns$x)
+index(portfolioreturnsxts) <- as.Date(index(portfolioreturnsxts))
+
+### Dates 
+#start_date <- as.Date("01/01/2001", "%m/%d/%Y")
+#end_date <- as.Date("04/14/2022", "%m/%d/%Y")
+
+### Additional ETFs load in
+#addETFs <- c("2561.T", "SCHP", "SLYG")
+
+#for (i in length(addETFs)) {
+  #sp <- tq_get(addETFs, get = "stock.prices", from = start_date, to = Sys.Date())
+#}
+
+#SP <- sp[, c(1,2,8)]
+
+#Convert using pivot_wider
+#SPpivot <- SP %>% pivot_wider(names_from = symbol, values_from = adjusted)
+
+#Portfolio
+#Convert stocks to time-series (xts)
+#stockxts <- xts(SPpivot[,-1], order.by = SPpivot$date)
+
+#Calculate portfolio returns 
+#stockreturns <- Return.calculate(stockxts)
+
+#totalETFreturns <- merge(ETFfxReturnsxts, stockreturns, all = TRUE)
+
+```
+
+## Mean Returns of Market, Risk-free Asset, ETFs
+
+```{r calculate mean returns, echo = FALSE, warning = FALSE, fig.width = 5, fig.pos = 'H'}
+# Calculate mean annual returns for risk-free asset and ETFs (arithmetic average)
+mean_ret <- data.frame(colMeans(numeric_returns, na.rm = T)) * 252
+colnames(mean_ret) <- "Mean Annual Returns"
+ETFmean_ret <- colMeans(ETFreturns, na.rm = T)
+kable(round(mean_ret, 10)) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% kable_styling(latex_options = "HOLD_position")
+```
+
+## Covariance Matrix between 16 ETFs
+
+```{r covariance matrix, echo = FALSE, warning = FALSE, fig.width = 5, fig.pos='H'}
+# Calculate covariance matrix for all ETFs (annualize it!)
+TRADING_DAYS <- 252
+cov_mat <- cov(ETFreturns) * TRADING_DAYS
+kable(round(cov_mat, 4)) %>% kable_styling(bootstrap_options = c("striped", "hover"))  %>% kable_styling(latex_options = "HOLD_position") %>% kable_styling(latex_options="scale_down")
+
+```
+
+
+```{r optimization using for-loop, echo = FALSE, warning = FALSE}
+
+num_port <- 5000
+
+# Creating a matrix to store the weights
+all_wts <- matrix(nrow = num_port,
+                  ncol = length(tickers))
+
+# Creating an empty vector to store portfolio returns
+port_returns <- vector('numeric', length = num_port)
+
+# Creating an empty vector to store portfolio standard deviation
+port_risk <- vector('numeric', length = num_port)
+
+# Creating an empty vector to store portfolio Sharpe Ratio
+sharpe_ratio <- vector('numeric', length = num_port)
+
+#Run the for loop
+for (i in seq_along(port_returns)) {
+  wts <- runif(length(tickers))
+  wts <- wts/sum(wts)
+  
+  # Storing weight in the matrix
+  all_wts[i,] <- wts
+  
+  # Portfolio returns
+  port_ret <- sum(wts * ETFmean_ret)
+  port_ret <- ((port_ret + 1)^252) - 1
+  
+  # Storing Portfolio Returns values
+  port_returns[i] <- port_ret
+  
+  # Creating and storing portfolio risk
+  port_sd <- sqrt(t(wts) %*% (cov_mat %*% wts))
+  port_risk[i] <- port_sd
+  
+  # Creating and storing Portfolio Sharpe Ratios
+  sr <- port_ret/port_sd
+  sharpe_ratio[i] <- sr
+}
+
+#Storing the values in the table
+portfolio_values <- tibble(Return = port_returns,
+                  Risk = port_risk,
+                  SharpeRatio = sharpe_ratio)
+
+#Convert matrix to a tibble and change column names
+all_wts <- tk_tbl(all_wts)
+colnames(all_wts) <- colnames(ETFreturns)
+portfolio_values <- tk_tbl(cbind(all_wts, portfolio_values))
+#head(portfolio_values)
+
+```
+
+# We considered portfolios that matter the most to investors... 
+
+- **Minimum Variance portfolio**
+- **Market/Tangency portfolio**
+
+Firstly, we assigned random weights to 16 ETFs and calculated the annualized portfolio returns and portfolio risk (sd). To find the optimal portfolio with the minimum variance and maximum Sharpe ratio, we looped this process 5000 times.  
+
+The minimum variance portfolio is catered to the most risk-adverse investors. It aims to minimize the price volatility of the overall portfolio, as well as the maximum drawdown that the portfolio might potentially face.\
+
+The tangency portfolio is the portfolio of ETFs that has the highest Sharpe ratio. It has the best risk-adjusted performance.
+
+
+```{r min-variance and tangency, echo=FALSE, warning=FALSE, fig.width = 10, fig.height = 5}
+min_var <- portfolio_values[which.min(portfolio_values$Risk),]
+max_sr <- portfolio_values[which.max(portfolio_values$SharpeRatio),]
+#print(min_var) 
+#print(max_sr) 
+
+min_var_plot <- min_var %>%
+  gather(AGG:BCI, key = Asset,
+         value = Weights) %>%
+  mutate(Asset = as.factor(Asset)) %>%
+  ggplot(aes(x = fct_reorder(Asset,Weights), y = Weights, fill = Asset), label=scales::percent(Weights)) +
+  geom_bar(stat = 'identity') +
+  theme_minimal() +
+  labs(x = 'Assets', y = 'Weights', title = "Minimum Variance Portfolio Weights") +
+  scale_y_continuous(labels = scales::percent) 
+
+ggplotly(min_var_plot)
+
+min_var_table <- min_var %>%
+  gather(AGG:BCI, key = Asset, value = Weights)
+kable(min_var_table, caption = "Individual Weights to minimise Risk") %>% kable_styling(bootstrap_options = c("striped", "hover"))
+
+
+max_sr_plot <- max_sr %>%
+  gather(AGG:BCI, key = Asset,
+         value = Weights) %>%
+  mutate(Asset = as.factor(Asset)) %>%
+  ggplot(aes(x = fct_reorder(Asset,Weights), y = Weights, fill = Asset), label=scales::percent(Weights)) +
+  geom_bar(stat = 'identity') +
+  theme_minimal() +
+  labs(x = 'Assets', y = 'Weights', title = "Tangency Portfolio Weights") +
+  scale_y_continuous(labels = scales::percent) 
+
+ggplotly(max_sr_plot)
+
+max_sr_table <- max_sr %>%
+  gather(AGG:BCI, key = Asset, value = Weights)
+kable(max_sr_table, caption = "Individual Weights to maximise Sharpe Ratio") %>% kable_styling(bootstrap_options = c("striped", "hover"))
+
+
+```
+
+```{r frontier, echo=FALSE, warning = FALSE, fig.width = 10, fig.height = 5}
+q <- portfolio_values %>%
+  ggplot(aes(x = Risk, y = Return, color = SharpeRatio)) +
+  geom_point() +
+  theme_classic() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = 'Annualized Risk',
+       y = 'Annualized Returns',
+       title = "Portfolio Optimization & Efficient Frontier") +
+  geom_point(aes(x = Risk,
+                 y = Return), data = min_var, color = 'pink') +
+  geom_point(aes(x = Risk,
+                 y = Return), data = max_sr, color = 'red') 
+  
+ggplotly(q)
+```
+
+# Backtesting
+
+For in-sample testing, we benchmarked our portfolio against the following 60/40 stocks-bonds portfolio.\
+
+```{r table, echo = FALSE, fig.pos = 'H'}
+
+tab <- matrix(c('60%', 'VTI', 'Vanguard Total Stock Market ETF', 'Equity, U.S, Large Cap', '40%', 'BND', 'Vanguard Total Bond Market ETF', 'Bond, U.S, All-Term'), ncol=4, byrow=TRUE)
+colnames(tab) <- c('Weight', 'Ticker', 'ETF name', 'Investment Themes')
+tab <- as.table(tab)
+kable(tab) %>% kable_styling(bootstrap_options = c("striped", "hover")) %>% kable_styling(latex_options = "HOLD_position")
+
+```
+
+## Portfolio vs 60/40 Benchmark Returns
+
+We compared returns over the past ~20 years to observe how our portfolio performs 
+
+```{r backtesting, echo=FALSE, warning = FALSE, fig.width = 10, fig.height = 5}
+
+start_date <- as.Date("10/01/2001", "%m/%d/%Y")
+#end_date <- as.Date("04/14/2022", "%m/%d/%Y")
+
+#Benchmark load in
+BMtickers <- c("VTI", "BND")
+  
+for (i in length(BMtickers)) {
+  bmprice <- tq_get(BMtickers, get = "stock.prices", from = start_date, to = Sys.Date())
+}
+
+BMprice <- bmprice[, c(1,2,8)]
+
+#Convert using pivot_wider
+BMpivot <- BMprice %>% pivot_wider(names_from = symbol, values_from = adjusted)
+
+#Portfolio
+#Convert BM to time-series (xts)
+BMxts <- xts(BMpivot[,-1], order.by = BMpivot$date)
+
+#Weights df 
+BMweights <- c(0.6, 0.4)
+
+#Calculate portfolio returns 
+BMreturns <- Return.calculate(BMxts)
+
+BMport <- Return.portfolio(BMreturns, weights = BMweights, rebalance_on = "years")
+BMwealthindex <- Return.portfolio(BMreturns, weights = BMweights, rebalance_on = "years", wealth.index = T)
+
+
+#Benchmark load in 
+#BM <- tq_get("^GSPC", from = start_date, to = Sys.Date())
+#BM <- BM[, c(2,8)]
+
+#Weights (maximise SR)
+weights1 <- c(0.1169570, 0.1569533, 0.0155703, 0.1456305, 0.0768589, 0.0483756, 0.0037707, 0.0122269, 0.0595813, 0.0034599, 0.0258156, 0.1113181, 0.0472941, 0.0295642, 0.1195656, 0.0270579)
+
+#Weights (minimise var)
+weights2 <- c(0.1219509, 0.1002318, 0.1355663, 0.1286076, 0.1018510, 0.0344330, 0.0243669, 0.0746129, 0.0056932, 0.0248884, 0.0091423, 0.0908430, 0.0497295, 0.0498370, 0.0275465, 0.0206995)
+
+#Weights (1/n)
+weights3 <- c(1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16,1/16)
+
+#Calculate portfolio returns 
+#returns <- Return.calculate(portfolioreturnsxts)
+
+portreturns <- Return.portfolio(portfolioreturnsxts, weights = weights1, rebalance_on = "years")
+portwealthindex <- Return.portfolio(portfolioreturnsxts, weights = weights1, rebalance_on = "years", wealth.index = T)
+
+portreturns2 <- Return.portfolio(portfolioreturnsxts, weights = weights2, rebalance_on = "years")
+portwealthindex2 <- Return.portfolio(portfolioreturnsxts, weights = weights2, rebalance_on = "years", wealth.index = T)
+
+portreturns3 <- Return.portfolio(portfolioreturnsxts, weights = weights3, rebalance_on = "years")
+portwealthindex3 <- Return.portfolio(portfolioreturnsxts, weights = weights3, rebalance_on = "years", wealth.index = T)
+
+#Convert BM to xts
+#BMxts <- xts(BM[,-1], order.by = BM$date)
+
+#Calculate BM Returns
+#BMreturns <- Return.calculate(BMxts)
+
+#BMport <- Return.portfolio(BMreturns)
+#BMwealthindex <- Return.portfolio(BMreturns, wealth.index = T)
+
+#PLOTTING 
+plotreturns <- plot(portwealthindex)
+plotreturns <- lines(portwealthindex2, col = "blue")
+plotreturns <- lines(portwealthindex3, col = "green")
+plotreturns <- lines(BMwealthindex, col = "red")
+plotreturns
+```
+
+# Portfolio vs 60/40 Benchmark Statistics
+
+```{r stats, echo = FALSE, warning = FALSE}
+#Create stats table 
+calc_stats_table <- function(returns, returns_bm, riskfree) {
+  stats_table <- Return.cumulative(returns)
+  stats_table <- rbind(stats_table, Return.annualized(returns, scale = 252))
+  stats_table <- rbind(stats_table, StdDev.annualized(returns, scale = 252))
+  stats_table <- rbind(stats_table, SharpeRatio(returns, Rf = riskfree, FUN = "StdDev"))
+  stats_table <- rbind(stats_table, maxDrawdown(returns))
+  rownames(stats_table) <- c("Total_Return", "Return_pa", "Volatility_pa", "SharpeRatio_pa", "Max Drawdown")
+  stats_table <- t(stats_table)
+  return(stats_table)
+}
+
+#Stats table output
+statstable <- calc_stats_table(portreturns, BMport, riskfree = 0)
+statstable2 <- calc_stats_table(portreturns2, BMport, riskfree = 0)
+statstable3 <- calc_stats_table(portreturns3, BMport, riskfree = 0)
+BMtable <- calc_stats_table(BMport, BMport, riskfree = 0)
+
+finalstats <- rbind(statstable, statstable2, statstable3, BMtable)
+rownames(finalstats) <- c("Max SR Portfolio", "Min Variance Portfolio","1/N Weighted Portfolio", "60/40 Benchmark")
+
+kable(finalstats) %>% kable_styling(bootstrap_options = c("striped", "hover")) %>% kable_styling(latex_options = "hold_position")
+
+
+```
+
+
+
+

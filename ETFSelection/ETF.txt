@@ -1,0 +1,78 @@
+1306 Nomura TOPIX Exchange Traded Fund ETF
+- AuM: ¥15,902,669.88 M (large cap)
+- Expense ratio: 0.11% 
+- Tracking Difference: -0.13% 
+- Country: Japan
+- Sectors: 21.3% Industrial, 18.1% Consumer Discretionary, 15.3% Information Technology
+
+Vanguard Global ex-U.S. Real Estate ETF
+- AuM: $4,727.28 M (mid cap)
+- Expense ratio: 0.12%
+- Tracking Difference: -0.38%
+- Country: Japan 21.3% Australia 10.1% HongKong 8.7%
+ United Kingdom 8.6% China 8.1% Other 43.2%
+- Sectors: Real Estate 94.1% Other 5.9%
+
+Vanguard Real Estate ETF
+- AuM: $47,554.16 M (large cap)
+- Expense ratio: 0.12%
+- Tracking Difference: -0.14%
+- Country: United States
+- Sectors: Real Estate 97.7%
+
+iShares Gold Trust ETF
+- AuM: $32,424.08 M (large cap)
+- Expense ratio: 0.25%
+- Tracking Difference: -0.26%
+- Country: NA
+- Sectors: Gold 
+
+ETFS Bloomberg All Commodity Strategy K-1 Free ETF
+- AuM: $1,084.70 M (mid cap)
+- Expense ratio: 0.31%
+- Tracking Difference: NA
+- Country: NA
+- Sectors: Actively managed Commodities
+
+ARKK ARK INNOVATION ETF
+- AuM: $10,640.12 M (large cap)
+- Expense ratio: 0.75%
+- Tracking Difference: NA
+- Country: NA
+- Sectors: Actively managed Distruptive innovation theme
+
+Vanguard Intermediate-Term Bond ETF
+- AuM: $12,729.22 M (large cap)
+- Expense ratio: 0.05%
+- Tracking Difference: -0.51%
+- Country: United States 88.1% Other 11.9%
+- Sectors: Treasury 54.8% Industrial 7.4% Other 37.7%
+
+Vanguard Short-Term Corporate Bond ETF
+- AuM: $40,247.80 M (large cap)
+- Expense ratio: 0.04%
+- Tracking Difference: -0.25%
+- Country: United States 76.2% Other 23.8%
+- Sectors: Banking 16.8% Financial Institution 16.5% 
+Industrial 15.6%
+
+Nikko Listed Index Fund Australian REIT ETF
+- AuM: $ 109.51 M (small cap)
+- Expense ratio: 0.45%
+- Tracking Difference: -0.25%
+- Country: Australia 99.3%
+- Sectors: Real Estate 98.7%
+
+Vanguard Total World Stock ETF
+- AuM: $ 25,570.62 M (large cap)
+- Expense ratio: 0.08%
+- Tracking Difference: -0.56%
+- Country: United States 59.4% Other 40.6%
+- Sectors: Information Technology 25.3%
+
+BetaShares Australian Dividend Harvester Fund
+- AuM: $ 128.08 M (small cap)
+- Expense ratio: 0.9%
+- Tracking Difference: NA
+- Country: Australia
+- Sectors: large cap Australian shares
